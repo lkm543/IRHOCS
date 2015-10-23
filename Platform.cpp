@@ -15,6 +15,8 @@ Platform::Platform(int port_num_front, int port_num_rear, int baud_rate = 9600)
 	_motionState = 0;
 	_motorControlFront->writePort(string("2ANSW0\n")); //YC Idea 同步是什麼意思
 	_motorControlFront->writePort(string("1ANSW0\n"));
+	_motorControlRear->writePort(string("2ANSW0\n")); //YC Idea 同步是什麼意思
+	_motorControlRear->writePort(string("1ANSW0\n"));
 
 	resetMotorEncoder();
 	setSpeed(MOTION_SPEED);
@@ -66,7 +68,7 @@ void Platform::moveForward(void)
 	_isIdle = false;
 	_motionState = 1;
 	enableMotor();
-	Sleep(20);
+	//Sleep(20);
 	char FrontMotorCmdBuffer[32];
 	char RearMotorCmdBuffer[32];
 
@@ -111,6 +113,8 @@ void Platform::moveRight(void)
 {
 	_isIdle = false;
 	//_motionState = 2;
+	enableMotor();
+	//Sleep(20);
 	char FrontMotorCmdBuffer[32];
 	char RearMotorCmdBuffer[32];
 	sprintf_s(FrontMotorCmdBuffer, "0v%f\n1v%f\n", (-1)*speed*1.0, (-1)*speed*1.0);
@@ -137,6 +141,8 @@ void Platform::moveLeft(void)
 {
 	_isIdle = false;
 	//_motionState = 2;
+	enableMotor();
+	//Sleep(20);
 	char FrontMotorCmdBuffer[32];
 	char RearMotorCmdBuffer[32];
 
@@ -146,6 +152,7 @@ void Platform::moveLeft(void)
 	_motorControlRear->writePort(string(RearMotorCmdBuffer));
 	//vL = (-1)*speed;
 	//vR = (-1)*speed;
+
 }
 void Platform::moveLeftN(double dist_cm, double ratio)
 {
@@ -275,7 +282,7 @@ void Platform::stop()
 	_motionState = 0;
 	_motorControlFront->writePort(string("0v0\n1v0\n"));
 	_motorControlRear->writePort(string("2v0\n3v0\n"));
-	Sleep(5);
+	//Sleep(5);
 }
 
 void Platform::watchMotion()
@@ -344,6 +351,7 @@ void Platform::setSpeed(int speed_rpm)
 	sprintf_s(speedChar, "sp%d\n", speed_rpm);
 	speed = speed_rpm;
 	_motorControlFront->writePort(string(speedChar));
+	_motorControlRear->writePort(string(speedChar));
 }
 
 void Platform::setAcceleration(int acc)
@@ -352,6 +360,7 @@ void Platform::setAcceleration(int acc)
 	sprintf_s(accelerationChar, "ac%d\n", acc);
 	acceleration = acc;
 	_motorControlFront->writePort(string(accelerationChar));
+	_motorControlRear->writePort(string(accelerationChar));
 }
 
 void Platform::setDeceleration(int dec)
@@ -360,6 +369,7 @@ void Platform::setDeceleration(int dec)
 	sprintf_s(decelerationChar, "dec%d\n", dec);
 	deceleration = dec;
 	_motorControlFront->writePort(string(decelerationChar));
+	_motorControlRear->writePort(string(decelerationChar));
 }
 
 void Platform::resetMotorEncoder()
