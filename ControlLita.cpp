@@ -639,13 +639,6 @@ void Reset_ControlLita()
 {
 }
 
-inline long roundf( float x )
-{
-	if( x >= 0.0f )
-		return (long)(x + 0.5f);
-	else 
-		return (long)(x - 0.5f);
-}
 
 inline void MotorPosPIDVelPIControl( int i )
 {

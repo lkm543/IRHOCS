@@ -2,6 +2,7 @@
 #include "Platform.hpp"
 #include "gripper_2.h"
 #include <opencv2/opencv.hpp>
+#include <thread>
 
 using namespace std;
 using namespace Eigen;
@@ -49,7 +50,9 @@ Robot arm:
 #pragma endregion
 #pragma region opencv
 /*
- VideoCapture cap(0);
+
+	VideoCapture cap(0);
+	char click='a';
 	Mat img;
     while (true)
     {
@@ -57,15 +60,25 @@ Robot arm:
         Mat image=img;
         imshow("window label", image);
         waitKey(1);
+		if ( _kbhit() )
+				click = _getche();
+		if ( click == 'q' )
+		{
+			break;
+		}
     }
+	destroyWindow("window label");
 */
 #pragma endregion
 // main 
+void image_processing();
 int main( int argc, char **argv, char **envp)
 {
 #pragma region Variable
 	//Variable
+	
 	int speed_car = 500;
+	
 	int Value_Postion_Gripper_Close=255; //0-255
 	int Value_Postion_Gripper_Force=80; //0-255
 	int Value_Gripper_Speed=200; //0-255
@@ -75,29 +88,24 @@ int main( int argc, char **argv, char **envp)
 	double z_offset=0;
 #pragma endregion
 #pragma region default
+	
 	Eigen::Matrix4f init_pose = Eigen::Matrix4f::Identity();
-	Eigen::Matrix4f first_corner = Eigen::Matrix4f::Identity();
-	Eigen::Matrix4f second_corner = Eigen::Matrix4f::Identity();
-	Eigen::Matrix2f desk_transform = Eigen::Matrix2f::Identity();
 	Eigen::Matrix4f first_block = Eigen::Matrix4f::Identity();
 	Eigen::Matrix4f first_block_temp = Eigen::Matrix4f::Identity();
 	Eigen::Matrix4f first_target = Eigen::Matrix4f::Identity();
 	Eigen::Matrix4f first_target_temp = Eigen::Matrix4f::Identity();
-	Eigen::Matrix4f next_block = Eigen::Matrix4f::Identity();
-	Eigen::Matrix4f next_block_temp = Eigen::Matrix4f::Identity();
-	Eigen::Matrix4f next_target = Eigen::Matrix4f::Identity();
-	Eigen::Matrix4f next_target_temp = Eigen::Matrix4f::Identity();
 	bool block=false; // In moving mode or not
 	bool display_mode=true; //unknown
-
+	
 // function prototype for periodic timer function
 	void RTFCNDCL TimerHandler1( void * nContext ); //unknown
 	void setDefaultArmSpeed(float percentage = 1.0f);
 
 	Platform* robot_platform = new Platform(MOTOR_PORT_FRONT, MOTOR_PORT_REAR, MOTOR_BAUDRATE);
+	//cout<<"Open serial port Successfully"<<endl;
 	robot_platform->setSpeed(speed_car);
 	robot_platform->stop();
-
+	/*
 	//For Gripper
 	init_gripper_para(); //unknown
 	initialize_gripper_motion(); //unknown
@@ -105,7 +113,7 @@ int main( int argc, char **argv, char **envp)
 	setGoToPosReqFlag( GoToPosReqFlag ); //unknown
 	setReqSpeed(Value_Gripper_Speed); //gripper speed
 	setReqForce(Value_Postion_Gripper_Force); //gripper force
-
+	*/
 	init_LuoLita_1(); //move to initial position 
 
 	
@@ -149,9 +157,11 @@ int main( int argc, char **argv, char **envp)
 	init_pose.block(0,0,3,3) = R07Cmd;//save initial rotation
 	init_pose.block(0,3,3,1) = P07Cmd;//save initial translation
 	setDefaultArmSpeed(Value_Arm_Speed);
+	
 #pragma endregion
 #pragma region default_matrix
 	//Block target
+	
 	first_block(0, 0) = 0.0;
 	first_block(0, 1) = -1.0;
 	first_block(0, 2) = 0.0;
@@ -185,114 +195,130 @@ int main( int argc, char **argv, char **envp)
 	first_target(3, 1) = 0.0;
 	first_target(3, 2) = 0.0;
 	first_target(3, 3) = 1.0;
-
+	
 #pragma endregion
 	
-
+	
 	kbCmd='m';
 	keyboard_cw();
 	kbCmd='j';
 	keyboard_cw();
 	
-	VideoCapture cap(0);
-	char click='a';
-	Mat img;
-    while (true)
-    {
-        cap >> img;
-        Mat image=img;
-        imshow("window label", image);
-        waitKey(1);
-		if ( _kbhit() )
-				click = _getche();
-		if ( click == 'q' )
-		{
-			break;
-		}
-    }
-	destroyWindow("window label");
 	/////////////////////////////////////////
+	//thread mThread( image_processing );
 while(1)
 	{
 			char Cmd=' ';
 
-			if (display_mode==false)
-			{
-					if ( _kbhit() )
-						 Cmd = _getche();
-			}
+			//if (display_mode==false)
+			//{
+				//}
 
-		    system("cls");
-            if (display_mode==true)
-			{
-					if (ModeArm==2) 
+				system("cls");
+				if (display_mode == true)
+				{
+					if (ModeArm == 2)
 					{
 						printf("Cartesian Mode    ");
-						if (SubMode==2) printf("translation\n"); 
-						else if (SubMode==4) printf("rotation\n"); 
-						else if (SubMode==0) printf("LOCK\n");
+						if (SubMode == 2) printf("translation\n");
+						else if (SubMode == 4) printf("rotation\n");
+						else if (SubMode == 0) printf("LOCK\n");
 					}
-					else if (ModeArm==1) printf("Joint Mode    ");
-			
+					else if (ModeArm == 1) printf("Joint Mode    ");
+
 					printf("Input commend and press enter:\n");
 					printf("[1] Move to experiment point\n");
 					printf("[2] Move\n");
 					printf("[z] Go to initial pose\n");
-					printf("[q] Quit\n");
+					printf("[esc] Quit\n");
 					printf(">>");
-					std::cin>>Cmd;
-			}
+					//std::cin>>Cmd;
+				}
 
-		if ( Cmd == 'q' )
-		{
-			break;
-		}
-		switch (Cmd)
-		{
-			case '1': //move to exp point
-			{
-				ifstream fin2("Point.txt");
-				if(!fin2) { 
-					cout << "無法讀入檔案\\n"; 
-				} 
-				for (int i=0;i<=3;i++)
+				if (_kbhit()) {
+					Cmd = _getche();
+				if (Cmd == kb_ESC)
 				{
-					fin2 >> first_block(i,0) >> first_block(i,1) >> first_block(i,2) >>first_block(i,3);
+					break;
 				}
-				first_block(0,3)=first_block(0,3);
-				first_block(1,3)=first_block(1,3);
-				first_block(2,3)=first_block(2,3);
-				cout <<first_block<<endl; 
+				switch (Cmd)
+				{
+					/*
+					case 'w':
+						//robot_platform->stop();
+						robot_platform->moveForward();
+						break;
+					case 'a':
+						//robot_platform->stop();
+						robot_platform->moveLeft();
+						break;
+					case 's':
+						//robot_platform->stop();
+						robot_platform->moveBackward();
+						break;
+					case 'd':
+						//robot_platform->stop();
+						robot_platform->moveRight();
+						break;
+					case 'q':
+						//robot_platform->stop();
+						robot_platform->turnLeft();
+						break;
+					case 'e':
+						//robot_platform->stop();
+						robot_platform->turnRight();
+						break;
+					case '`':
+						robot_platform->stop();
+						break;
+					*/
+				case '1': //move to exp point
+				{
+					ifstream fin2("Point.txt");
+					if (!fin2) {
+						cout << "無法讀入檔案\\n";
+					}
+					for (int i = 0; i <= 3; i++)
+					{
+						fin2 >> first_block(i, 0) >> first_block(i, 1) >> first_block(i, 2) >> first_block(i, 3);
+					}
+					first_block(0, 3) = first_block(0, 3);
+					first_block(1, 3) = first_block(1, 3);
+					first_block(2, 3) = first_block(2, 3);
+					cout << first_block << endl;
 
-				setDefaultArmSpeed(Value_Arm_Speed);
-				Move_L_Abs(first_block, 0.0f);
-				while (MOVL) {
+					setDefaultArmSpeed(Value_Arm_Speed);
+					Move_L_Abs(first_block, 0.0f);
+					while (MOVL) {
+					}
+					Sleep(1000);
+					break;
 				}
-				Sleep(1000);
-				break;
+
+				case '2': //Move
+				{
+					robot_platform->moveForward(50);
+					robot_platform->stop();
+					break;
+				}
+				case 'z': //回到init位置
+				{
+					kbCmd = 'j';
+					keyboard_cw();
+					Move_L_Abs(init_pose, 0.0f);
+					while (MOVL) {} //wait for motion to complete
+					break;
+				}
+				}
 			}
-			
-			case '2': //Move
-			{
-				robot_platform->moveForward(50);
-				robot_platform->stop();
-				break;
-			}
-			case 'z': //回到init位置
-				kbCmd = 'j';
-				keyboard_cw();
-				Move_L_Abs( init_pose ,0.0f);
-				while(MOVL) {} //wait for motion to complete
-				break;
-		}
 		Cmd = ' ';		
 		Sleep(29);
-		if (display_mode==false)
-		DisplayLoop(); //display function by laoda
+		//if (display_mode==false)
+		//DisplayLoop(); //display function by laoda
 	}
-
 // esc to exit
 #pragma region default_exit
+
 	ByeBye();
 	while(1)
 	{
@@ -311,6 +337,7 @@ while(1)
 	}
 
 	Sleep(100);
+	
 	if(!RtDeleteTimer( hTimer1 ) )
 	{
         //RtWprintf(L"RtDeleteTimer error = %d\n",GetLastError());
@@ -323,7 +350,10 @@ while(1)
 	Sleep(1000);
 	OutputData();
 	
+	robot_platform->stop();
+	//std::terminate();
 	ExitProcess(0);
+
 #pragma endregion
 }
 // main end
@@ -347,4 +377,38 @@ void setDefaultArmSpeed(float percentage)
     Jn_Dec_limit = Jn_Acc_limit * percentage;
 }
 
+
 #pragma endregion
+
+void image_processing(){
+
+	VideoCapture cap(0);
+	Mat img,dst,cdst;
+	char click = ' ';
+	vector<Vec2f> lines;
+    while (true)
+    {
+        cap >> img;
+
+		Canny(img, dst, 50, 200, 3);
+		cvtColor(dst, cdst, CV_GRAY2BGR);
+
+		HoughLines(dst, lines, 1, CV_PI / 180, 150, 0, 0);
+
+		for (size_t i = 0; i < lines.size(); i++)
+		{
+			float rho = lines[i][0], theta = lines[i][1];
+			Point pt1, pt2;
+			double a = cos(theta), b = sin(theta);
+			double x0 = a*rho, y0 = b*rho;
+			pt1.x = cvRound(x0 + 1000 * (-b));
+			pt1.y = cvRound(y0 + 1000 * (a));
+			pt2.x = cvRound(x0 - 1000 * (-b));
+			pt2.y = cvRound(y0 - 1000 * (a));
+			line(cdst, pt1, pt2, Scalar(0, 0, 255), 3, CV_AA);
+		}
+        imshow("window label", cdst);
+		imshow("origin", img);
+        waitKey(1);
+    }
+}

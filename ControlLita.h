@@ -36,7 +36,6 @@ const int DataLength = 50000;
 void Init_ControlLita();
 void Reset_ControlLita();
 
-inline long roundf( float x );
 
 inline void MotorPosPIDVelPIControl( int i );
 
