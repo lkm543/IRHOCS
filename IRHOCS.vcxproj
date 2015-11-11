@@ -20,6 +20,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -39,8 +40,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\eigen\Eigen3_2;C:\eigen;C:\Program Files\IntervalZero\RTX\include;C:\Program Files\ITRI\IMP Series\IDDL\Library\VC;C:\TwinCAT\AdsApi\TcAdsDll\Include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files\ITRI\IMP Series\IDDL\Library\VC;C:\Program Files\IntervalZero\RTX\lib;$(LibraryPath);C:\TwinCAT\AdsApi\TcAdsDll\Lib</LibraryPath>
+    <IncludePath>C:\boost_1_59_0;C:\eigen\Eigen3_2;C:\eigen;C:\Program Files\IntervalZero\RTX\include;C:\Program Files\ITRI\IMP Series\IDDL\Library\VC;C:\TwinCAT\AdsApi\TcAdsDll\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\boost_1_59_0;C:\Program Files\ITRI\IMP Series\IDDL\Library\VC;C:\Program Files\IntervalZero\RTX\lib;$(LibraryPath);C:\TwinCAT\AdsApi\TcAdsDll\Lib</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -52,14 +53,14 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\opencv\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\boost_1_59_0;C:\opencv\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>opencv_calib3d2411d.lib;opencv_contrib2411d.lib;opencv_core2411d.lib;opencv_features2d2411d.lib;opencv_flann2411d.lib;opencv_gpu2411d.lib;opencv_highgui2411d.lib;opencv_imgproc2411d.lib;opencv_legacy2411d.lib;opencv_ml2411d.lib;opencv_nonfree2411d.lib;opencv_objdetect2411d.lib;opencv_photo2411d.lib;opencv_stitching2411d.lib;opencv_ts2411d.lib;opencv_video2411d.lib;opencv_videostab2411d.lib;IMCDriver.lib;rtapi_w32.lib;TcAdsDll.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libc;libcd;libcmt;libcmtd;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
-      <AdditionalLibraryDirectories>C:\opencv\build\x86\vc10\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\boost_1_59_0\libs;C:\opencv\build\x86\vc10\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

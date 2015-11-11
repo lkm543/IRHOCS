@@ -18,8 +18,8 @@
 #define NODE_FRONTLEFTMOTOR      1
 #define NODE_REARRIGHTMOTOR      2
 #define NODE_REARLEFTMOTOR       3
-#define MOTOR_PORT_FRONT         3  // Serial port
-#define MOTOR_PORT_REAR          5  // Serial port
+#define MOTOR_PORT_FRONT         6  // Serial port
+#define MOTOR_PORT_REAR          7  // Serial port
 #define FRONTRIGHTMOTOR_RATIO 1.0
 #define FRONTLEFTMOTOR_RATIO  1.0
 #define REARRIGHTMOTOR_RATIO  1.0

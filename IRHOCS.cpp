@@ -75,12 +75,15 @@ void image_processing();
 int main( int argc, char **argv, char **envp)
 {
 #pragma region Variable
+
+	thread mThread(image_processing);
 	//Variable
 	
 	int speed_car = 500;
 	
 	int Value_Postion_Gripper_Close=255; //0-255
-	int Value_Postion_Gripper_Force=80; //0-255
+	int Value_Postion_Gripper_Open=0; //0-255
+	int Value_Postion_Gripper_Force=20; //0-255
 	int Value_Gripper_Speed=200; //0-255
 	float Value_Arm_Speed=0.5; //0-1.2 , float
 	double x_offset=0;
@@ -105,7 +108,7 @@ int main( int argc, char **argv, char **envp)
 	//cout<<"Open serial port Successfully"<<endl;
 	robot_platform->setSpeed(speed_car);
 	robot_platform->stop();
-	/*
+	
 	//For Gripper
 	init_gripper_para(); //unknown
 	initialize_gripper_motion(); //unknown
@@ -113,7 +116,7 @@ int main( int argc, char **argv, char **envp)
 	setGoToPosReqFlag( GoToPosReqFlag ); //unknown
 	setReqSpeed(Value_Gripper_Speed); //gripper speed
 	setReqForce(Value_Postion_Gripper_Force); //gripper force
-	*/
+	
 	init_LuoLita_1(); //move to initial position 
 
 	
@@ -205,7 +208,6 @@ int main( int argc, char **argv, char **envp)
 	keyboard_cw();
 	
 	/////////////////////////////////////////
-	//thread mThread( image_processing );
 while(1)
 	{
 			char Cmd=' ';
@@ -229,6 +231,8 @@ while(1)
 					printf("Input commend and press enter:\n");
 					printf("[1] Move to experiment point\n");
 					printf("[2] Move\n");
+					printf("[,] open gripper\n");
+					printf("[.] close gripper\n");
 					printf("[z] Go to initial pose\n");
 					printf("[esc] Quit\n");
 					printf(">>");
@@ -243,7 +247,7 @@ while(1)
 				}
 				switch (Cmd)
 				{
-					/*
+					
 					case 'w':
 						//robot_platform->stop();
 						robot_platform->moveForward();
@@ -271,7 +275,13 @@ while(1)
 					case '`':
 						robot_platform->stop();
 						break;
-					*/
+					case ',': //§¨¤öopen
+						setReqPos(Value_Postion_Gripper_Open);
+						break;
+					case '.': //§¨¤öclose
+						setReqPos(Value_Postion_Gripper_Close);
+						break;
+					
 				case '1': //move to exp point
 				{
 					ifstream fin2("Point.txt");
@@ -381,19 +391,43 @@ void setDefaultArmSpeed(float percentage)
 #pragma endregion
 
 void image_processing(){
-
-	VideoCapture cap(0);
-	Mat img,dst,cdst;
+	
+	VideoCapture cap1(0);
+	VideoCapture cap2(1);
+	Mat img1,img2,dst,cdst;
 	char click = ' ';
 	vector<Vec2f> lines;
+	int erosion_elem = 3;
+	int erosion_size = 3;
+	int dilation_elem = 3;
+	int dilation_size = 3;
+	int const max_elem = 2;
+	int const max_kernel_size = 21;
+	Mat element = getStructuringElement(MORPH_RECT,
+		Size(2 * erosion_size + 1, 2 * erosion_size + 1),
+		Point(erosion_size, erosion_size));
     while (true)
     {
-        cap >> img;
 
-		Canny(img, dst, 50, 200, 3);
-		cvtColor(dst, cdst, CV_GRAY2BGR);
+        cap1 >> img1;
+		cap2 >> img2;
+		
+        //imshow("window label", cdst);
+		if (img1.rows>0){
+		dst = img1.clone();
+		cvtColor(img1, img1, CV_RGB2GRAY);
+		cv::threshold(img1, img1, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+		erode(img1, img1, element);
+		erode(img1, img1, element);
+		erode(img1, img1, element);
+		dilate(img1, img1, element);
+		dilate(img1, img1, element);
+		dilate(img1, img1, element);
+		dilate(img1, img1, element);
+		dilate(img1, img1, element);
+		Canny(img1, img1, 50, 200, 3);
 
-		HoughLines(dst, lines, 1, CV_PI / 180, 150, 0, 0);
+		HoughLines(img1, lines, 1, CV_PI / 180, 100, 0, 0);
 
 		for (size_t i = 0; i < lines.size(); i++)
 		{
@@ -405,10 +439,44 @@ void image_processing(){
 			pt1.y = cvRound(y0 + 1000 * (a));
 			pt2.x = cvRound(x0 - 1000 * (-b));
 			pt2.y = cvRound(y0 - 1000 * (a));
-			line(cdst, pt1, pt2, Scalar(0, 0, 255), 3, CV_AA);
+			line(dst, pt1, pt2, Scalar(0, 0, 255), 3, CV_AA);
+
 		}
-        imshow("window label", cdst);
-		imshow("origin", img);
-        waitKey(1);
+
+		imshow("origin1", dst);
+		}
+		if (img2.rows>0) {
+			cdst = img2.clone();
+			cvtColor(img2, img2, CV_RGB2GRAY);
+			cv::threshold(img2, img2, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+			erode(img2, img2, element);
+			erode(img2, img2, element);
+			erode(img2, img2, element);
+			dilate(img2, img2, element);
+			dilate(img2, img2, element);
+			dilate(img2, img2, element);
+			dilate(img2, img2, element);
+			dilate(img2, img2, element);
+			Canny(img2, dst, 50, 200, 3);
+
+			HoughLines(dst, lines, 1, CV_PI / 180, 100, 0, 0);
+
+			for (size_t i = 0; i < lines.size(); i++)
+			{
+				float rho = lines[i][0], theta = lines[i][1];
+				Point pt1, pt2;
+				double a = cos(theta), b = sin(theta);
+				double x0 = a*rho, y0 = b*rho;
+				pt1.x = cvRound(x0 + 1000 * (-b));
+				pt1.y = cvRound(y0 + 1000 * (a));
+				pt2.x = cvRound(x0 - 1000 * (-b));
+				pt2.y = cvRound(y0 - 1000 * (a));
+				line(cdst, pt1, pt2, Scalar(0, 0, 255), 3, CV_AA);
+
+			}
+			imshow("origin2", cdst);
+		}
+		waitKey(30);
     }
+	
 }
